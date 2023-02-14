@@ -1,0 +1,29 @@
+from pulp import *
+
+# Define problem variables
+n = 7  # or 8 or 13, depending on the test case
+earnings = {'Theatre': 1500, 'Pub': 1000, 'Commercial Park': 3000}
+build_time = {'Theatre': 5, 'Pub': 4, 'Commercial Park': 10}
+land_coverage = {'Theatre': 2, 'Pub': 1, 'Commercial Park': 3}
+max_units = n // min(build_time.values())  # maximum number of units that can be built
+
+# Define LP problem
+prob = LpProblem("Property Development", LpMaximize)
+
+# Define decision variables
+t = LpVariable.dicts("Theatre", range(max_units+1), lowBound=0, cat='Integer')
+p = LpVariable.dicts("Pub", range(max_units+1), lowBound=0, cat='Integer')
+c = LpVariable.dicts("Commercial Park", range(max_units+1), lowBound=0, cat='Integer')
+
+# Define objective function
+prob += lpSum([earnings['Theatre']*t[i] + earnings['Pub']*p[i] + earnings['Commercial Park']*c[i] for i in range(max_units+1)])
+
+# Define constraints
+prob += lpSum([land_coverage['Theatre']*t[i] + land_coverage['Pub']*p[i] + land_coverage['Commercial Park']*c[i] <= n for i in range(max_units+1)])
+prob += lpSum([build_time['Theatre']*t[i] + build_time['Pub']*p[i] + build_time['Commercial Park']*c[i] <= i for i in range(1, max_units+1)])
+
+# Solve LP problem
+prob.solve()
+
+# Print solution
+print(f"T:{int(value(sum(t)))} P:{int(value(sum(p)))} C:{int(value(sum(c)))}")
